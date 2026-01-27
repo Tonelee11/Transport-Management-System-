@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Users Management</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>User Management</h1>
+      <div class="header-subtitle">Manage admin and clerk accounts</div>
+      <div class="header-actions">
+        <div class="user-info" id="userInfo">
+          <span id="userName"></span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="dashboard" class="nav-link">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a href="new-cargo" class="nav-link">New Cargo</a>
+        </li>
+        <li class="nav-item">
+          <a href="trucks" class="nav-link">Trucks</a>
+        </li>
+        <li class="nav-item">
+          <a href="admin-users" class="nav-link active">Admin</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="padding: 1rem;">
+      <!-- Search Bar -->
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          class="form-input" 
+          placeholder="Search users by name or username..." 
+          id="searchInput"
+        >
+      </div>
+
+      <!-- Create User Button -->
+      <button class="btn btn-primary mb-2" onclick="openCreateModal()" style="width: 100%; max-width: 300px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create New User
+      </button>
+
+      <!-- Users List -->
+      <div id="usersList" class="grid-2">
+        <!-- Users will be loaded here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Create/Edit User Modal -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Create New User</h2>
+        <button class="close-btn" onclick="closeUserModal()">&times;</button>
+      </div>
+
+      <form id="userForm">
+        <input type="hidden" id="userId">
+
+        <div class="form-group">
+          <label class="form-label" for="username">
+            Username <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="username" 
+            class="form-input" 
+            placeholder="e.g., Hamis"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fullName">
+            Full Name <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="fullName" 
+            class="form-input" 
+            placeholder="e.g., Hamis Juma"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">
+            Phone Number
+          </label>
+          <input 
+            type="tel" 
+            id="phone" 
+            class="form-input" 
+            placeholder="+255 7XX XXX XXX"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="role">
+            Role <span class="required">*</span>
+          </label>
+          <select id="role" class="form-select" required>
+            <option value="">Select role</option>
+            <option value="admin">Admin</option>
+            <option value="clerk">Clerk</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="passwordGroup">
+          <label class="form-label" for="password">
+            Initial Password <span class="required">*</span>
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input" 
+            placeholder="Minimum 8 characters"
+          >
+          <span class="form-help">Password must be at least 8 characters long</span>
+        </div>
+
+        <div class="form-group">
+          <div class="flex items-center justify-between">
+            <label class="form-label" style="margin-bottom: 0;">Active Account</label>
+            <div class="toggle active" id="activeToggle" onclick="toggleActive()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitUserBtn">
+          Create User
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const userForm = document.getElementById('userForm');
+    const submitUserBtn = document.getElementById('submitUserBtn');
+    const searchInput = document.getElementById('searchInput');
+    let isEditMode = false;
+    let isActiveState = true;
+
+    // Get user from session storage
+    const userStr = sessionStorage.getItem('currentUser');
+    const user = userStr ? JSON.parse(userStr) : null;
+    
+    if (!user) {
+      window.location.href = '/public/';
+    } else if (user.role !== 'admin') {
+      alert('Access denied. Admin only.');
+      window.location.href = 'dashboard';
+    } else {
+      document.getElementById('userName').textContent = user.username;
+      csrfToken = sessionStorage.getItem('csrfToken');
+
+      // Load users
+      loadUsers();
+    }
+
+    // Search functionality
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadUsers(e.target.value);
+      }, 300);
+    });
+
+    // Toggle active state
+    function toggleActive() {
+      const toggle = document.getElementById('activeToggle');
+      isActiveState = !isActiveState;
+      
+      if (isActiveState) {
+        toggle.classList.add('active');
+      } else {
+        toggle.classList.remove('active');
+      }
+    }
+
+    // Open create modal
+    function openCreateModal() {
+      isEditMode = false;
+      document.getElementById('modalTitle').textContent = 'Create New User';
+      document.getElementById('userId').value = '';
+      document.getElementById('passwordGroup').style.display = 'block';
+      document.getElementById('password').required = true;
+      submitUserBtn.textContent = 'Create User';
+      userForm.reset();
+      isActiveState = true;
+      document.getElementById('activeToggle').classList.add('active');
+      openModal('userModal');
+    }
+
+    // Edit user
+    window.editUser = async function(userId) {
+      // Load user data
+      try {
+        const data = await apiCall('users');
+        const user = data.users.find(u => u.id === userId);
+        
+        if (!user) {
+          showToast('User not found', 'error');
+          return;
+        }
+
+        isEditMode = true;
+        document.getElementById('modalTitle').textContent = 'Edit User';
+        document.getElementById('userId').value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('username').disabled = true; // Can't change username
+        document.getElementById('fullName').value = user.full_name;
+        document.getElementById('phone').value = user.phone || '';
+        document.getElementById('role').value = user.role;
+        document.getElementById('passwordGroup').style.display = 'none';
+        document.getElementById('password').required = false;
+        
+        isActiveState = user.active;
+        if (user.active) {
+          document.getElementById('activeToggle').classList.add('active');
+        } else {
+          document.getElementById('activeToggle').classList.remove('active');
+        }
+
+        submitUserBtn.textContent = 'Update User';
+        openModal('userModal');
+
+      } catch (error) {
+        showToast('Failed to load user data', 'error');
+      }
+    };
+
+    // Close modal
+    function closeUserModal() {
+      closeModal('userModal');
+      userForm.reset();
+      document.getElementById('username').disabled = false;
+      isEditMode = false;
+    }
+
+    // Form submission
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const userData = {
+        username: document.getElementById('username').value.trim(),
+        full_name: document.getElementById('fullName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        role: document.getElementById('role').value,
+        active: isActiveState
+      };
+
+      if (!isEditMode) {
+        userData.password = document.getElementById('password').value;
+        
+        if (userData.password.length < 8) {
+          showToast('Password must be at least 8 characters', 'error');
+          return;
+        }
+      }
+
+      submitUserBtn.disabled = true;
+      submitUserBtn.textContent = isEditMode ? 'Updating...' : 'Creating...';
+
+      try {
+        if (isEditMode) {
+          const userId = document.getElementById('userId').value;
+          await updateUser(userId, userData);
+        } else {
+          await createUser(userData);
+        }
+
+        closeUserModal();
+        loadUsers();
+      } catch (error) {
+        // Error already handled by API functions
+      } finally {
+        submitUserBtn.disabled = false;
+        submitUserBtn.textContent = isEditMode ? 'Update User' : 'Create User';
+      }
+    });
+
+    // Toggle styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .toggle {
+        position: relative;
+        width: 48px;
+        height: 28px;
+        background: var(--border);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .toggle.active {
+        background: var(--primary);
+      }
+
+      .toggle-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+      }
+
+      .toggle.active .toggle-thumb {
+        transform: translateX(20px);
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
+
+```
+
+**What this page does:**
+- **Admin-only access** - redirects non-admins to dashboard
+- Search users by name or username
+- Create new users (admin or clerk)
+- Edit existing users
+- Reset user passwords
+- Activate/deactivate accounts
+- Shows user status (active, locked)
+- Shows last login and failed attempts
+- Mobile-responsive grid layout
+
+```

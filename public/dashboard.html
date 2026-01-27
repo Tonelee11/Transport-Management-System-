@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raphael Transport - Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Layout Styles */
+    body {
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      /* Original Brand Blue Gradient */
+      background: linear-gradient(180deg, #0025cc 0%, #001a99 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      left: 0;
+      top: 0;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+
+    /* User Profile Section */
+    .user-profile {
+      padding: 1.5rem 0.75rem;
+      text-align: left;
+    }
+
+    .user-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: white;
+      margin: 0 0.75rem 0.75rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size:2rem;
+      color: #0025cc;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border: 3px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .avatar-upload-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.25rem;
+      color: white; /* Ensure text is white */
+      pointer-events: none; /* Don't block clicks to input */
+    }
+
+    .user-avatar:hover .avatar-upload-overlay {
+      opacity: 1;
+    }
+
+    #avatarInput {
+      display: none;
+    }
+
+    .user-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      padding: 0 0.75rem;
+    }
+
+    .user-role {
+      font-size: 0.8rem;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255,255,255,0.1);
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.5rem;
+      display: inline-block;
+      margin-left: 0.75rem;
+    }
+
+    /* Navigation Menu */
+    .nav-menu {
+      flex: 1;
+      padding: 1rem 0;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      margin: 0.25rem 0.75rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .nav-link:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateX(3px);
+    }
+
+    .nav-link.active {
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Icon SVGs */
+    .icon-dashboard { background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>') no-repeat center; }
+    .icon-cargo { background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>') no-repeat center; }
+    .icon-users { background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>') no-repeat center; }
+    .icon-messages { background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>') no-repeat center; }
+    .icon-logout { background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>') no-repeat center; }
+
+    /* Logout Button */
+    .sidebar-footer {
+      padding: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .logout-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(199,17,20,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .logout-btn:hover {
+      background: #c71114;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(199,17,20,0.3);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: var(--topbar-bg);
+      padding: 1.5rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: var(--bg);
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .mobile-menu-btn:hover {
+      background: #e5e7eb;
+    }
+
+    /* Content Container */
+    .content-container {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    /* View Sections */
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* Stats Cards - ADJUSTED HEIGHT */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.3s;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      background: currentColor;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-radius: 4px;
+      border-color:#0025cc;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    /* Light Mode Backgrounds */
+    .stat-card.pending { 
+        background-color: #ffffff; 
+        border-color: #fde68a;
+        color: #f1f1f0; 
+    }
+    .stat-card.on-road { 
+        background-color: #ffffff; 
+        border-color: #bfdbfe;
+        color: #1d4ed8; 
+    }
+    .stat-card.arrived { 
+        background-color: #ffffff; 
+        border-color: #a7f3d0;
+        color: #059669; 
+    }
+
+    .stat-card.pending .stat-label, .stat-card.pending .stat-value { color: #b45309; }
+    .stat-card.on-road .stat-label, .stat-card.on-road .stat-value { color: lab(31.55% 30.72 -62.27); }
+    .stat-card.arrived .stat-label, .stat-card.arrived .stat-value { color: #047857; }
+
+    /* Dark Mode Backgrounds */
+    .dark-mode .stat-card.pending { 
+        background-color: rgba(245, 158, 11, 0.1) !important; 
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    .dark-mode .stat-card.on-road { 
+        background-color: rgba(0, 37, 204, 0.15) !important; 
+        border-color: rgba(0, 37, 204, 0.3);
+    }
+    .dark-mode .stat-card.arrived { 
+        background-color: rgba(16, 185, 129, 0.1) !important; 
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .dark-mode .stat-card.pending .stat-label, .dark-mode .stat-card.pending .stat-value { color: #fbbf24; }
+    .dark-mode .stat-card.on-road .stat-label, .dark-mode .stat-card.on-road .stat-value { color: #60a5fa; }
+    .dark-mode .stat-card.arrived .stat-label, .dark-mode .stat-card.arrived .stat-value { color: #34d399; }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 260px;
+      }
+
+      .sidebar.mobile-hidden {
+        transform: translateX(-100%);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-container {
+        padding: 1rem;
+      }
+    }
+
+    /* Mobile Overlay */
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      backdrop-filter: blur(2px);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar:not(.mobile-hidden) ~ .mobile-overlay {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <!-- User Profile -->
+      <div class="user-profile">
+        <div class="user-avatar" id="userAvatar" onclick="document.getElementById('avatarInput').click()">
+          <span id="avatarInitial">A</span>
+          <div class="avatar-upload-overlay">Upload Photo</div>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*">
+        <div class="user-name" id="userName">Admin User</div>
+        <div class="user-role" id="userRole">Administrator</div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <div class="nav-item">
+          <a class="nav-link active" onclick="showView('dashboard')" data-view="dashboard">
+            <span class="nav-icon icon-dashboard"></span>
+            <span>Dashboard</span>
+          </a>
+        </div>
+        <div class="nav-item">
+          <a class="nav-link" onclick="showView('clients')" data-view="clients">
+            <span class="nav-icon icon-users"></span>
+            <span>Clients</span>
+          </a>
+        </div>
+        <div class="nav-item" id="adminNavItem" style="display: none;">
+          <a class="nav-link" onclick="showView('admin')" data-view="admin">
+            <span class="nav-icon icon-users"></span>
+            <span>User Management</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Logout -->
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+          <span class="nav-icon icon-logout"></span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="flex items-center gap-2">
+            <div class="theme-toggle-container">
+                <button class="theme-btn" id="themeToggle" title="Toggle Dark/Light Mode">
+                    <svg class="sun-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </div>
+      </div>
+
+      <!-- Content Container -->
+      <div class="content-container">
+        <!-- Dashboard View -->
+        <div class="view-section active" id="view-dashboard">
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card pending">
+              <div class="stat-label">Pending</div>
+              <div class="stat-value" id="statPending">0</div>
+            </div>
+            <div class="stat-card on-road">
+              <div class="stat-label">On Road</div>
+              <div class="stat-value" id="statOnRoad">0</div>
+            </div>
+            <div class="stat-card arrived">
+              <div class="stat-label">Arrived</div>
+              <div class="stat-value" id="statArrived">0</div>
+            </div>
+          </div>
+
+          <!-- All Waybills -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+             <h2 style="font-size: 1.25rem; font-weight: 600;">All Waybills</h2>
+          </div>
+          
+          <div class="search-box">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" class="form-input" placeholder="Search by waybill #..." id="waybillSearchInput">
+          </div>
+          
+          <div id="waybillsList"></div>
+        </div>
+
+        <!-- CLIENTS VIEW -->
+        <div class="view-section" id="view-clients">
+            <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 600;">Clients</h2>
+                <button class="btn btn-primary" onclick="openClientModal()">+ Register Client</button>
+            </div>
+            
+             <div class="search-box">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" class="form-input" placeholder="Search clients..." id="clientSearchInput">
+              </div>
+
+            <div id="clientsList"></div>
+        </div>
+
+        <!-- CLIENT HUB (Detail View) -->
+        <div class="view-section" id="view-client-hub">
+            <button class="btn btn-secondary btn-sm mb-2" onclick="showView('clients')">← Back to Clients</button>
+            <div class="card" id="clientProfileCard">
+                <!-- Client Details go here -->
+            </div>
+            
+            <div class="flex gap-2 mb-3" style="border-bottom: 1px solid var(--border);">
+                 <button class="tab-btn active" onclick="switchClientTab('active')" id="tab-active">Active Waybills</button>
+                 <button class="tab-btn" onclick="switchClientTab('create')" id="tab-create">New Waybill</button>
+                 <button class="tab-btn" onclick="switchClientTab('history')" id="tab-history">History</button>
+                 <button class="tab-btn" onclick="switchClientTab('sms')" id="tab-sms">SMS Logs</button>
+            </div>
+            
+            <div id="client-tab-active" class="client-tab-content"></div>
+            <div id="client-tab-create" class="client-tab-content hidden">
+                 <div class="card" style="max-width: 800px;">
+                    <h3 class="card-title mb-2">Create Waybill for <span id="newWbClientName"></span></h3>
+                    <form id="clientCargoForm">
+                        <input type="hidden" id="wbClientId">
+                        
+                        <input type="hidden" id="wbClientName">
+                        <input type="hidden" id="wbClientPhone">
+
+        
+                      <!-- Shipment Details -->
+                      <fieldset style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                        <legend style="font-weight: 600; color: var(--primary); padding: 0 0.5rem;">Shipment Details</legend>
+                        
+                        <div class="form-group">
+                          <label class="form-label">Origin (From) <span class="required">*</span></label>
+                          <input type="text" id="wbOrigin" class="form-input" placeholder="e.g., Dar es Salaam" required>
+                        </div>
+        
+                        <div class="form-group">
+                          <label class="form-label">Destination (To) <span class="required">*</span></label>
+                          <div class="autocomplete-container" id="destContainer">
+                              <input type="text" id="wbDestination" class="form-input" placeholder="e.g., Mwanza" required autocomplete="off" style="padding-right: 2.5rem;">
+                              <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="destIcon">
+                                  <path d="m6 9 6 6 6-6"></path>
+                              </svg>
+                          </div>
+                        </div>
+        
+                        <div class="form-group">
+                          <label class="form-label">Cargo Description</label>
+                          <textarea id="wbCargoDescription" class="form-textarea" placeholder="Describe the cargo (optional)" rows="3"></textarea>
+                        </div>
+                      </fieldset>
+                      
+                       <button type="submit" class="btn btn-primary btn-block">Create Waybill for Client</button>
+                    </form>
+                 </div>
+            </div>
+            <div id="client-tab-history" class="client-tab-content hidden"></div>
+            <div id="client-tab-sms" class="client-tab-content hidden"></div>
+        </div>
+
+
+
+
+        <!-- Admin View -->
+        <div class="view-section" id="view-admin">
+          <div class="search-box">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="form-input" placeholder="Search users..." id="searchInput">
+          </div>
+          <button class="btn btn-primary mb-2" onclick="openCreateModal()" style="width: 100%; max-width: 300px;">+ Create New User</button>
+          <div id="usersList" class="grid-2"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create/Edit Client Modal -->
+  <div class="modal-overlay" id="clientModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="clientModalTitle">Register New Client</h2>
+        <button class="close-btn" onclick="closeClientModal()">&times;</button>
+      </div>
+      <form id="clientForm">
+        <input type="hidden" id="clientId">
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="required">*</span></label>
+          <input type="text" id="clientFullName" class="form-input" placeholder="e.g., John Mwangi" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number <span class="required">*</span></label>
+          <input type="tel" id="clientPhoneNumber" class="form-input" placeholder="+255 7XX XXX XXX" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitClientBtn">Register Client</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Create New User</h2>
+        <button class="close-btn" onclick="closeUserModal()">&times;</button>
+      </div>
+      <form id="userForm">
+        <input type="hidden" id="userId">
+        <div class="form-group">
+          <label class="form-label">Username <span class="required">*</span></label>
+          <input type="text" id="username" class="form-input" placeholder="e.g., jdoe" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="required">*</span></label>
+          <input type="text" id="fullName" class="form-input" placeholder="e.g., John Doe" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" id="phone" class="form-input" placeholder="+255 7XX XXX XXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role <span class="required">*</span></label>
+          <select id="role" class="form-select" required>
+            <option value="">Select role</option>
+            <option value="admin">Admin</option>
+            <option value="clerk">Clerk</option>
+          </select>
+        </div>
+        <div class="form-group" id="passwordGroup">
+          <label class="form-label">Initial Password <span class="required">*</span></label>
+          <input type="password" id="password" class="form-input" placeholder="Minimum 8 characters">
+          <span class="form-help">Password must be at least 8 characters long</span>
+        </div>
+        <div class="form-group">
+          <div class="flex items-center justify-between">
+            <label class="form-label" style="margin-bottom: 0;">Active Account</label>
+            <div class="toggle active" id="activeToggle" onclick="toggleActive()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitUserBtn">Create User</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

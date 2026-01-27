@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Cargo - Raphael Transport</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>New Cargo</h1>
+      <div class="header-subtitle">Create new waybill</div>
+      <div class="header-actions">
+        <div class="user-info" id="userInfo">
+          <span id="userName"></span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="dashboard" class="nav-link">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a href="new-cargo" class="nav-link active">New Cargo</a>
+        </li>
+        <li class="nav-item">
+          <a href="trucks" class="nav-link">Trucks</a>
+        </li>
+        <li class="nav-item" id="adminNav" style="display: none;">
+          <a href="admin-users" class="nav-link">Admin</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="padding: 1rem;">
+      <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <h2 class="card-title mb-2">Waybill Information</h2>
+
+        <form id="cargoForm">
+
+
+
+
+          <!-- Shipment Details -->
+          <fieldset style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+            <legend style="font-weight: 600; color: var(--primary); padding: 0 0.5rem;">Shipment Details</legend>
+            
+            <div class="form-group">
+              <label class="form-label" for="origin">
+                Origin (From) <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="origin" 
+                class="form-input" 
+                placeholder="e.g., Dar es Salaam"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="destination">
+                Destination (To) <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="destination" 
+                class="form-input" 
+                placeholder="e.g., Mwanza"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cargoDescription">
+                Cargo Description
+              </label>
+              <textarea 
+                id="cargoDescription" 
+                class="form-textarea" 
+                placeholder="Describe the cargo (optional)"
+                rows="3"
+              ></textarea>
+            </div>
+
+          </fieldset>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+              Clear
+            </button>
+            <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
+              Create Waybill
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const cargoForm = document.getElementById('cargoForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Get user from session storage
+    const userStr = sessionStorage.getItem('currentUser');
+    const user = userStr ? JSON.parse(userStr) : null;
+    
+    if (!user) {
+      window.location.href = '/public/';
+    } else {
+      document.getElementById('userName').textContent = user.username;
+      csrfToken = sessionStorage.getItem('csrfToken');
+
+      if (user.role === 'admin') {
+        document.getElementById('adminNav').style.display = 'block';
+      }
+    }
+
+    // Form submission
+    cargoForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const waybillData = {
+        client_name: document.getElementById('clientName').value.trim(),
+        client_phone: document.getElementById('clientPhone').value.replace(/\s/g, ''),
+        origin: document.getElementById('origin').value.trim(),
+        destination: document.getElementById('destination').value.trim(),
+        cargo_description: document.getElementById('cargoDescription').value.trim()
+      };
+
+      // Validate required fields
+      if (!waybillData.client_name || !waybillData.client_phone || 
+          !waybillData.origin || !waybillData.destination) {
+        showToast('Please fill in all required fields (Name, Phone, Origin, Destination)', 'error');
+        return;
+      }
+
+      // Disable submit button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating...';
+
+      try {
+        const result = await createWaybill(waybillData);
+        
+        // Show success with waybill number
+        showToast(`Waybill ${result.waybill_number} created successfully! Receipt SMS queued.`, 'success');
+        
+        // Show SMS demo
+        if (result.sms_demo) {
+          setTimeout(() => {
+            alert(`SMS Preview:\n\n${result.sms_demo}`);
+          }, 1000);
+        }
+
+        // Reset form
+        resetForm();
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'dashboard';
+        }, 2000);
+
+      } catch (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Waybill';
+      }
+    });
+
+    function resetForm() {
+      cargoForm.reset();
+      document.getElementById('clientName').focus();
+    }
+
+    // Focus first field on load
+    window.addEventListener('load', () => {
+      document.getElementById('clientName').focus();
+    });
+  </script>
+</body>
+</html>

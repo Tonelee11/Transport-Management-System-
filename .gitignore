@@ -1,0 +1,21 @@
+# Ignore environment files with sensitive credentials
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Uploads (optional - keep if you want to version control uploads)
+# uploads/
+
+# Docker volumes
+db-data/

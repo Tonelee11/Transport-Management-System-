@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  php:
+    image: php:8.2-fpm
+    container_name: logistics-php
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - logistics-network
+    command: >
+      sh -c "docker-php-ext-install pdo pdo_mysql mysqli && php-fpm"
+
+  nginx:
+    image: nginx:alpine
+    container_name: logistics-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - logistics-network
+
+  db:
+    image: mysql:8.0
+    container_name: logistics-db
+    environment:
+      MYSQL_ROOT_PASSWORD: tw_pass
+      MYSQL_DATABASE: logistics
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - logistics-network
+
+  adminer:
+    image: adminer
+    container_name: logistics-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - logistics-network
+    depends_on:
+      - db
+
+networks:
+  logistics-network:
+    driver: bridge
+
+volumes:
+  db-data:

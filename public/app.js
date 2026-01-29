@@ -459,7 +459,7 @@ function renderWaybills(waybills, filterStatus = '') {
   }
 
   let filterButtonsHTML = `
-    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <div class="filter-row">
       <button class="btn ${filterStatus === '' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="filterWaybills('')">All</button>
       <button class="btn ${filterStatus === 'pending' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="filterWaybills('pending')">Pending</button>
       <button class="btn ${filterStatus === 'on_road' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="filterWaybills('on_road')">On Road</button>
@@ -524,7 +524,7 @@ function renderWaybills(waybills, filterStatus = '') {
           Created: ${formatDate(wb.created_at)}
         </div>
         
-        <div class="flex gap-1" style="flex-wrap: wrap;">
+        <div class="actions-row">
           ${actionButtons}
         </div>
       </div>

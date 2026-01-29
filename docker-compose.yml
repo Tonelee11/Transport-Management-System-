@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   php:
@@ -42,7 +41,7 @@ services:
     image: adminer
     container_name: logistics-adminer
     ports:
-      - "8080:8080"
+      - "8484:8080"
     networks:
       - logistics-network
     depends_on:

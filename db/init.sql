@@ -21,20 +21,6 @@ CREATE TABLE users (
   INDEX idx_active (active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Trucks table
-CREATE TABLE trucks (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  truck_number VARCHAR(50) UNIQUE NOT NULL,
-  driver_name VARCHAR(100) NOT NULL,
-  driver_phone VARCHAR(20) NOT NULL,
-  status ENUM('idle', 'departed', 'on_road', 'arrived') NOT NULL DEFAULT 'idle',
-  depart_time DATETIME NULL,
-  arrived_time DATETIME NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_truck_number (truck_number),
-  INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Clients table (New)
 CREATE TABLE clients (
@@ -61,16 +47,13 @@ CREATE TABLE waybills (
   cargo_description TEXT,
   weight DECIMAL(10,2),
   status ENUM('pending', 'on_road', 'arrived', 'delivered') NOT NULL DEFAULT 'pending',
-  assigned_truck_id INT NULL,
   created_by INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (assigned_truck_id) REFERENCES trucks(id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES users(id),
   FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
   INDEX idx_waybill_number (waybill_number),
   INDEX idx_status (status),
-  INDEX idx_assigned_truck (assigned_truck_id),
   INDEX idx_client_phone (client_phone),
   INDEX idx_client_id (client_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -111,7 +94,7 @@ VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
 
 **What this file does:**
 - Creates the `logistics` database
-- Creates tables for: users, trucks, waybills, sms_logs, sessions
+- Creates tables for: users, waybills, sms_logs, sessions
 - Sets up proper indexes for performance
 - Creates a default admin user
   - **Username:** `admin`

@@ -400,7 +400,6 @@ function renderWaybills(waybills) {
           <div class="mb-1"><strong>Client:</strong> ${escapeHtml(wb.client_name)} (${escapeHtml(wb.client_phone)})</div>
           <div class="mb-1"><strong>From:</strong> ${escapeHtml(wb.origin)} → <strong>To:</strong> ${escapeHtml(wb.destination)}</div>
           ${wb.cargo_description ? `<div class="mb-1"><strong>Cargo:</strong> ${escapeHtml(wb.cargo_description)}</div>` : ''}
-          ${wb.truck_number ? `<div class="mb-1"><strong>Truck:</strong> ${escapeHtml(wb.truck_number)}</div>` : ''}
         </div>
         
         <div class="text-muted" style="font-size: 0.75rem;">

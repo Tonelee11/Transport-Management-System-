@@ -3,6 +3,11 @@
 
 function env($key, $default = null)
 {
+    // Try system environment variables first (Render behavior)
+    $val = getenv($key);
+    if ($val !== false)
+        return $val;
+
     $path = __DIR__ . '/.env';
     if (!file_exists($path))
         return $default;
@@ -12,9 +17,9 @@ function env($key, $default = null)
         $line = trim($line);
         if (empty($line) || strpos($line, '#') === 0)
             continue;
-        list($k, $v) = explode('=', $line, 2);
-        if (trim($k) === $key) {
-            return trim($v);
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2 && trim($parts[0]) === $key) {
+            return trim($parts[1]);
         }
     }
     return $default;
@@ -38,6 +43,12 @@ function getDB()
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
+
+        // Enable SSL for external databases like TiDB
+        if (env('DB_SSL', 'false') === 'true') {
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        }
+
         $pdo = new PDO($dsn, $user, $pass, $options);
 
         // Synchronize PHP and DB timezones (East Africa Time)

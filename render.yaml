@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: logistics-pwa
+    env: docker
+    plan: free
+    region: ohio
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: CSRF_SECRET
+        generateValue: true
+      - key: APP_URL
+        fromService:
+          type: web
+          name: logistics-pwa
+          property: host

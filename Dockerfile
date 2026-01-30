@@ -7,8 +7,9 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Copy custom Nginx configuration
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# Copy custom Nginx configuration to image's preferred location
+COPY conf/nginx/nginx-site.conf /etc/nginx/sites-available/default.conf
+RUN ln -sf /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
 
 # Environment setup
 ENV SKIP_COMPOSER=1

@@ -1,0 +1,12 @@
+.git
+.gitignore
+docker-compose.yml
+README-local-dev.md
+LICENSE
+uploads/*
+!uploads/.gitkeep
+api/.env
+node_modules
+.gemini
+.agent
+brain

@@ -4,6 +4,7 @@ services:
     env: docker
     plan: free
     region: ohio
+    healthCheckPath: /public/index.html
     envVars:
       - key: DB_HOST
         sync: false

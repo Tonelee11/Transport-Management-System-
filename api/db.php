@@ -42,10 +42,12 @@ function getDB()
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_TIMEOUT => 10, // 10 seconds timeout
         ];
 
         // Enable SSL for external databases like TiDB
         if (env('DB_SSL', 'false') === 'true') {
+            // Some environments require this for TiDB Cloud
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
 

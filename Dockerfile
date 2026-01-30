@@ -8,9 +8,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Copy custom Nginx configuration
-# The image expects custom config in /etc/nginx/sites-available/default.conf 
-# or we can use the image's feature to load from a specific path.
-COPY docker/nginx/default.conf /etc/nginx/sites-available/default.conf
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Environment setup
 ENV SKIP_COMPOSER=1

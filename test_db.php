@@ -14,6 +14,13 @@ $env_status = [
 require_once __DIR__ . '/api/db.php';
 
 try {
+    // Basic diagnostic info
+    $diagnostics = [
+        'php_version' => PHP_VERSION,
+        'pdo_mysql_enabled' => extension_loaded('pdo_mysql'),
+        'environment' => $env_status,
+    ];
+
     $db = getDB();
 
     // Check if users table exists
@@ -22,13 +29,12 @@ try {
     $response = [
         'success' => true,
         'message' => 'Connected to database server!',
-        'environment' => $env_status,
+        'diagnostics' => $diagnostics,
         'schema' => [
             'users_table_exists' => (bool) $table_check,
             'current_db' => $db->query("SELECT DATABASE()")->fetchColumn()
         ],
-        'db_time' => $db->query("SELECT NOW()")->fetchColumn(),
-        'php_version' => PHP_VERSION
+        'db_time' => $db->query("SELECT NOW()")->fetchColumn()
     ];
 
     if (!$table_check) {
@@ -42,7 +48,7 @@ try {
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage(),
-        'environment' => $env_status,
-        'hint' => 'Check your Render environment variables. Ensure DB_HOST is your TiDB hostname (e.g. gateway01.us-west-2.prod.aws.tidbcloud.com).'
+        'diagnostics' => $diagnostics ?? ['pdo_mysql_enabled' => extension_loaded('pdo_mysql')],
+        'hint' => 'Check your Render environment variables. Ensure DB_HOST is your TiDB hostname and DB_SSL is true.'
     ], JSON_PRETTY_PRINT);
 }

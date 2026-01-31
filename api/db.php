@@ -35,25 +35,29 @@ function getDB()
     $dbname = env('DB_NAME', 'logistics');
     $user = env('DB_USER', 'root');
     $pass = env('DB_PASS', 'tw_pass');
+    $port = 3306;
 
-    // TiDB Cloud often uses port 4000. If no port is specified, append it.
-    if (strpos($host, 'tidbcloud.com') !== false && strpos($host, ':') === false) {
-        $host .= ':4000';
+    // Handle host:port format and set default port for TiDB
+    if (strpos($host, ':') !== false) {
+        list($host, $port) = explode(':', $host, 2);
+    } elseif (strpos($host, 'tidbcloud.com') !== false) {
+        $port = 4000;
     }
 
     try {
-        $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";
+        $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_TIMEOUT => 10, // 10 seconds timeout
+            PDO::ATTR_TIMEOUT => 10,
         ];
 
         // Automatic SSL for TiDB Cloud or if DB_SSL is true
         if (strpos($host, 'tidbcloud.com') !== false || env('DB_SSL', 'false') === 'true') {
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-            // Force SSL even if not explicitly requested via env for TiDB
+            // PDO::MYSQL_ATTR_SSL_CA could be added here if needed, 
+            // but VERIFY_SERVER_CERT=false is usually sufficient for TiDB Cloud on Render
         }
 
         $pdo = new PDO($dsn, $user, $pass, $options);
@@ -63,8 +67,9 @@ function getDB()
 
         return $pdo;
     } catch (PDOException $e) {
-        // Re-throw the exception so callers can see the actual error message
-        throw $e;
+        // Provide more context for debugging
+        $errorMsg = "DB Connection Failed: " . $e->getMessage() . " (Host: $host, Port: $port)";
+        throw new Exception($errorMsg);
     }
 }
 

@@ -1,15 +1,11 @@
--- Database schema for Raphael Transport Logistics PWA
+-- CLEAN RESET SCRIPT for Raphael Transport Logistics PWA
+-- WARNING: This will delete ALL existing data!
+
+DROP DATABASE IF EXISTS logistics;
+CREATE DATABASE logistics CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE logistics;
 
--- 1. Drop old tables in correct order (due to links)
-DROP TABLE IF EXISTS `sms_logs`;
-DROP TABLE IF EXISTS `sessions`;
-DROP TABLE IF EXISTS `waybills`;
-DROP TABLE IF EXISTS `trucks`;
-DROP TABLE IF EXISTS `clients`;
-DROP TABLE IF EXISTS `users`;
-
--- 2. Create only the tables we need
+-- 1. Create Tables
 CREATE TABLE `users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `username` VARCHAR(50) UNIQUE NOT NULL,
@@ -74,6 +70,6 @@ CREATE TABLE `sessions` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 
--- 3. Add default admin (Password: Admin123)
+-- 2. Add default admin (Password: Admin123)
 INSERT INTO `users` (`username`, `password_hash`, `full_name`, `role`, `active`) 
 VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin', TRUE);

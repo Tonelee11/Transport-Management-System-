@@ -18,8 +18,8 @@ ENV PHP_ERRORS_STDERR=1
 ENV RUN_SCRIPTS=1
 ENV REAL_IP_HEADER=1
 
-# Configure Nginx for the app structure
-ENV WEBROOT=/var/www/html
+# Use image's built-in WEBROOT feature to auto-configure Nginx
+ENV WEBROOT=/var/www/html/public
 
 # Expose port 80
 EXPOSE 80

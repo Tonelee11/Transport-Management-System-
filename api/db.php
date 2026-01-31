@@ -55,7 +55,9 @@ function getDB()
 
         // Automatic SSL for TiDB Cloud or if DB_SSL is true
         if (strpos($host, 'tidbcloud.com') !== false || env('DB_SSL', 'false') === 'true') {
-            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            }
             // PDO::MYSQL_ATTR_SSL_CA could be added here if needed, 
             // but VERIFY_SERVER_CERT=false is usually sufficient for TiDB Cloud on Render
         }

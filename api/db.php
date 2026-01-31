@@ -45,10 +45,10 @@ function getDB()
             PDO::ATTR_TIMEOUT => 10, // 10 seconds timeout
         ];
 
-        // Enable SSL for external databases like TiDB
-        if (env('DB_SSL', 'false') === 'true') {
-            // Some environments require this for TiDB Cloud
+        // Automatic SSL for TiDB Cloud or if DB_SSL is true
+        if (strpos($host, 'tidbcloud.com') !== false || env('DB_SSL', 'false') === 'true') {
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            // Force SSL even if not explicitly requested via env for TiDB
         }
 
         $pdo = new PDO($dsn, $user, $pass, $options);

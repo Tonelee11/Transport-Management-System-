@@ -18,8 +18,3 @@ services:
         value: "true"
       - key: CSRF_SECRET
         generateValue: true
-      - key: APP_URL
-        fromService:
-          type: web
-          name: logistics-pwa
-          property: host

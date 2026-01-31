@@ -36,6 +36,11 @@ function getDB()
     $user = env('DB_USER', 'root');
     $pass = env('DB_PASS', 'tw_pass');
 
+    // TiDB Cloud often uses port 4000. If no port is specified, append it.
+    if (strpos($host, 'tidbcloud.com') !== false && strpos($host, ':') === false) {
+        $host .= ':4000';
+    }
+
     try {
         $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";
         $options = [

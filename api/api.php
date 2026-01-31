@@ -30,10 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/session.php';
+try {
+    require_once __DIR__ . '/db.php';
+    require_once __DIR__ . '/session.php';
 
-$db = getDB();
+    $db = getDB();
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Database connection failed. Please check your TiDB Cloud settings in Render.',
+        'details' => $e->getMessage()
+    ]);
+    exit;
+}
+
 $action = $_GET['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 

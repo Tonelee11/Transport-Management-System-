@@ -106,16 +106,18 @@
             localStorage.setItem('csrfToken', data.csrf_token);
           }
           
-          window.location.href = '/public/dashboard';
+          window.location.href = '/public/dashboard.html'; // Explicitly point to .html
         } else {
-          alert(data.error || 'Login failed');
+          // Show the detailed error if provided by the backend
+          const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Login failed');
+          alert(errorMsg);
           loginBtn.disabled = false;
           loginBtn.textContent = 'Login';
           passwordInput.value = '';
         }
       } catch (error) {
         console.error('Login error:', error);
-        alert('Connection error - please try again');
+        alert('Server unreachable or connection error. Please visit /test_db.php for diagnostics.');
         loginBtn.disabled = false;
         loginBtn.textContent = 'Login';
       }
